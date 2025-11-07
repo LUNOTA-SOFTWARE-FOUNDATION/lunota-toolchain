@@ -1,0 +1,114 @@
+diff -ruN clean/clean/binutils-2.45/bfd/config.bfd dirty/binutils-2.45/bfd/config.bfd
+--- clean/clean/binutils-2.45/bfd/config.bfd	2025-07-26 19:00:00.000000000 -0400
++++ dirty/binutils-2.45/bfd/config.bfd	2025-09-06 16:52:46.331620666 -0400
+@@ -705,6 +705,11 @@
+     targ_selvecs="i386_elf32_vec"
+     want64=true
+     ;;
++  x86_64-*-lunota*)
++    targ_defvec=x86_64_elf64_vec
++    targ_selvecs="i386_elf32_vec"
++    want64=true
++    ;;
+   x86_64-*-netbsd* | x86_64-*-openbsd*)
+     targ_defvec=x86_64_elf64_vec
+     targ_selvecs="i386_elf32_vec iamcu_elf32_vec i386_coff_vec i386_pei_vec x86_64_pe_vec x86_64_pei_vec"
+diff -ruN clean/clean/binutils-2.45/config.guess dirty/binutils-2.45/config.guess
+--- clean/clean/binutils-2.45/config.guess	2025-07-26 19:00:00.000000000 -0400
++++ dirty/binutils-2.45/config.guess	2025-09-06 16:33:39.194612360 -0400
+@@ -1600,6 +1600,9 @@
+     *:Ironclad:*:*)
+ 	GUESS=$UNAME_MACHINE-unknown-ironclad
+ 	;;
++    *:Lunota:*:*)
++	GUESS=$UNAME_MACHINE-unknown-lunota
++	;;
+ esac
+
+ # Do we have a guess based on uname results?
+diff -ruN clean/clean/binutils-2.45/config.sub dirty/binutils-2.45/config.sub
+--- clean/clean/binutils-2.45/config.sub	2025-07-26 19:00:00.000000000 -0400
++++ dirty/binutils-2.45/config.sub	2025-09-06 16:31:02.054611222 -0400
+@@ -2013,6 +2013,7 @@
+ 	| gnu* \
+ 	| go32* \
+ 	| haiku* \
++	| lunota* \
+ 	| hcos* \
+ 	| hiux* \
+ 	| hms* \
+diff -ruN clean/clean/binutils-2.45/configure.ac dirty/binutils-2.45/configure.ac
+--- clean/clean/binutils-2.45/configure.ac	2025-07-26 19:00:00.000000000 -0400
++++ dirty/binutils-2.45/configure.ac	2025-09-06 16:34:40.570612805 -0400
+@@ -351,7 +351,7 @@
+       *-*-elf* | *-*-sysv4* | *-*-unixware* | *-*-eabi* | hppa*64*-*-hpux* \
+       | *-*-linux* | *-*-gnu* | frv-*-uclinux* | *-*-irix5* | *-*-irix6* \
+       | *-*-netbsd* | *-*-openbsd* | *-*-freebsd* | *-*-dragonfly* \
+-      | *-*-solaris2* | *-*-nto* | *-*-nacl* | *-*-haiku*)
++      | *-*-solaris2* | *-*-nto* | *-*-nacl* | *-*-haiku* | *-*-lunota*)
+         case "${target}" in
+           *-*-linux*aout* | *-*-linux*oldld*)
+             ;;
+diff -ruN clean/clean/binutils-2.45/gas/config/te-lunota.h dirty/binutils-2.45/gas/config/te-lunota.h
+--- clean/clean/binutils-2.45/gas/config/te-lunota.h	1969-12-31 19:00:00.000000000 -0500
++++ dirty/binutils-2.45/gas/config/te-lunota.h	2025-09-06 17:04:04.439625576 -0400
+@@ -0,0 +1,6 @@
++#define TE_Lunota 1
++
++#define LOCAL_LABELS_DOLLAR 1
++#define LOCAL_LABELS_FB 1
++
++#include "obj-format.h"
+diff -ruN clean/clean/binutils-2.45/gas/configure.tgt dirty/binutils-2.45/gas/configure.tgt
+--- clean/clean/binutils-2.45/gas/configure.tgt	2025-07-26 19:00:00.000000000 -0400
++++ dirty/binutils-2.45/gas/configure.tgt	2025-09-06 16:58:34.259623185 -0400
+@@ -231,6 +231,7 @@
+   i386-*-elf*)				fmt=elf ;;
+   i386-*-fuchsia*)			fmt=elf ;;
+   i386-*-haiku*)			fmt=elf em=haiku ;;
++  i386-*-lunota*)			fmt=elf em=lunota ;;
+   i386-*-genode*)			fmt=elf ;;
+   i386-*-bsd*)				fmt=aout em=386bsd ;;
+   i386-*-netbsd*-gnu* | \
+diff -ruN clean/clean/binutils-2.45/ld/configure.tgt dirty/binutils-2.45/ld/configure.tgt
+--- clean/clean/binutils-2.45/ld/configure.tgt	2025-07-26 19:00:00.000000000 -0400
++++ dirty/binutils-2.45/ld/configure.tgt	2025-09-06 17:41:47.518641962 -0400
+@@ -1019,6 +1019,9 @@
+ x86_64-*-redox*)	targ_emul=elf_x86_64
+ 			targ_extra_emuls=elf_i386
+ 			;;
++x86_64-*-lunota*)	targ_emul=elf_x86_64
++			targ_extra_emuls=elf_i386
++			;;
+ x86_64-*-solaris2*)	targ_emul=elf_x86_64_sol2
+ 			targ_extra_emuls="elf_x86_64 elf_i386_sol2 elf_i386_ldso elf_i386 elf_iamcu"
+ 			targ_extra_libpath=$targ_extra_emuls
+diff -ruN clean/clean/binutils-2.45/ld/emulparams/elf_lunota.sh dirty/binutils-2.45/ld/emulparams/elf_lunota.sh
+--- clean/clean/binutils-2.45/ld/emulparams/elf_lunota.sh	1969-12-31 19:00:00.000000000 -0500
++++ dirty/binutils-2.45/ld/emulparams/elf_lunota.sh	2025-09-06 17:15:09.236630389 -0400
+@@ -0,0 +1 @@
++ELF_INTERPRETER_NAME=""
+diff -ruN clean/clean/binutils-2.45/ld/emulparams/elf_i386_lunota.sh dirty/binutils-2.45/ld/emulparams/elf_i386_lunota.sh
+--- clean/clean/binutils-2.45/ld/emulparams/elf_i386_lunota.sh	1969-12-31 19:00:00.000000000 -0500
++++ dirty/binutils-2.45/ld/emulparams/elf_i386_lunota.sh	2025-09-06 17:29:46.307636740 -0400
+@@ -0,0 +1,4 @@
++source_sh ${srcdir}/emulparams/elf_i386.sh
++TEXT_START_ADDR=0x1000
++NONPAGED_TEXT_START_ADDR=0x1000
++MAXPAGESIZE=0x1000
+diff -ruN clean/clean/binutils-2.45/ld/emulparams/elf_x86_64_lunota.sh dirty/binutils-2.45/ld/emulparams/elf_x86_64_lunota.sh
+--- clean/clean/binutils-2.45/ld/emulparams/elf_x86_64_lunota.sh	1969-12-31 19:00:00.000000000 -0500
++++ dirty/binutils-2.45/ld/emulparams/elf_x86_64_lunota.sh	2025-09-06 17:27:45.556635866 -0400
+@@ -0,0 +1 @@
++source_sh ${srcdir}/emulparams/elf_x86_64.sh
+diff -ruN clean/clean/binutils-2.45/ld/Makefile.am dirty/binutils-2.45/ld/Makefile.am
+--- clean/clean/binutils-2.45/ld/Makefile.am	2025-07-26 19:00:00.000000000 -0400
++++ dirty/binutils-2.45/ld/Makefile.am	2025-09-06 17:31:15.703637387 -0400
+@@ -462,6 +462,7 @@
+ 	eelf_x86_64_cloudabi.c \
+ 	eelf_x86_64_fbsd.c \
+ 	eelf_x86_64_haiku.c \
++	eelf_x86_64_lunota.c \
+ 	eelf_x86_64_sol2.c \
+ 	ehppa64linux.c \
+ 	ei386pep.c \
